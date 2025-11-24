@@ -1,0 +1,172 @@
+/* 전체 컨테이너: 모바일 기준 중앙 정렬, 최대 폭 제한 */
+.interval-timer {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 상단 타이틀 */
+.interval-timer__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* 카드 공통 스타일 */
+.interval-timer__card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* 입력 영역: 모바일에서 세로, 큰 화면에서 가로 배치 */
+.interval-timer__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.interval-timer__inputs label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.interval-timer__inputs input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: 1px solid #d0d0d0;
+  box-sizing: border-box;
+}
+
+/* 메인 타이머 표시 */
+.interval-timer__display {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.interval-timer__time {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.interval-timer__time-label {
+  font-size: 0.95rem;
+  color: #666666;
+}
+
+.interval-timer__time-value {
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  font-family: monospace;
+}
+
+
+.interval-timer__time-unit {
+  font-size: 0.9rem;
+  margin-left: 4px;
+}
+
+/* 메타 정보 */
+.interval-timer__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.interval-timer__meta-item {
+  display: flex;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.interval-timer__meta-value {
+  font-weight: 600;
+  font-size: large;
+}
+
+/* 버튼 영역: 모바일에서 가로 두 개 버튼, 여유 있는 터치 영역 */
+.interval-timer__controls {
+  display: flex;
+  gap: 10px;
+}
+
+.interval-timer__button {
+  flex: 1 1 0;
+  padding: 12px 0;
+  border-radius: 999px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.1s ease;
+}
+
+.interval-timer__button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* primary 버튼 (시작/중지) */
+.interval-timer__button--primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+/* danger 상태 (중지) */
+.interval-timer__button--danger {
+  background: linear-gradient(135deg, #ef4444, #f97373);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+}
+
+/* ghost 버튼 (일시정지/재개) */
+.interval-timer__button--ghost {
+  background-color: #f3f4f6;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.interval-timer__button--ghost:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* 약간 더 큰 화면에서 레이아웃 개선 */
+@media (min-width: 600px) {
+  .interval-timer__inputs {
+    flex-direction: row;
+  }
+
+  .interval-timer__inputs>div {
+    flex: 1 1 0;
+  }
+}
+
+.x-large {
+  font-size: x-large;
+}
+
+.phase-stopped {
+  background-color: #eeeff0;
+}
+
+.phase-work {
+  background-color: #ffb179;
+}
+
+.phase-interval {
+  background-color: #ffea95;
+}
