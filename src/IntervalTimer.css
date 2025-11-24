@@ -170,3 +170,8 @@
 .phase-interval {
   background-color: #ffea95;
 }
+
+.center {
+  display: flex;
+  justify-content: center;
+}

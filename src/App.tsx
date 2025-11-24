@@ -153,6 +153,11 @@ export default function IntervalTimer() {
           </button>
         </div>
       </div>
+      <div className="center">
+        <p>
+          이중혁 - <a href="https://github.com/wndgur2/interval-timer">Github</a>
+        </p>
+      </div>
     </div>
   )
 }
