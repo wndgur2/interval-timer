@@ -8,6 +8,8 @@ import startWorkSoundSrc from './assets/audio/start-work.mp3'
 import stopWorkSoundSrc from './assets/audio/stop-work.mp3'
 import pauseSoundSrc from './assets/audio/pause.mp3'
 
+type SoundKey = 'finish' | 'startWork' | 'stopWork' | 'pause'
+
 export default function IntervalTimer() {
   const [totalLoops, setTotalLoops] = useState(4)
   const [initialTime, setInitialTime] = useState(10) // 작업 시간(초)
@@ -21,28 +23,74 @@ export default function IntervalTimer() {
 
   const timerRef = useRef<number | null>(null)
 
-  // 오디오 ref
-  const finishSoundRef = useRef<HTMLAudioElement | null>(null)
-  const stopWorkSoundRef = useRef<HTMLAudioElement | null>(null)
-  const startWorkSoundRef = useRef<HTMLAudioElement | null>(null)
-  const pauseSoundRef = useRef<HTMLAudioElement | null>(null)
+  // Web Audio refs
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioBuffersRef = useRef<Partial<Record<SoundKey, AudioBuffer>>>({})
 
-  // 오디오 인스턴스 생성
+  // Web Audio 초기화 + 버퍼 디코딩
   useEffect(() => {
-    finishSoundRef.current = new Audio(finishSoundSrc)
-    stopWorkSoundRef.current = new Audio(stopWorkSoundSrc)
-    startWorkSoundRef.current = new Audio(startWorkSoundSrc)
-    pauseSoundRef.current = new Audio(pauseSoundSrc)
+    const AC =
+      window.AudioContext ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).webkitAudioContext
+
+    if (!AC) {
+      // Web Audio 미지원 브라우저라면 HTMLAudioElement fallback 등을 추가할 수 있음
+      return
+    }
+
+    const ctx = new AC({
+      latencyHint: 'interactive', // 낮은 레이턴시
+    }) as AudioContext
+
+    audioContextRef.current = ctx
+
+    const loadBuffer = async (url: string): Promise<AudioBuffer> => {
+      const res = await fetch(url)
+      const arrayBuffer = await res.arrayBuffer()
+      return await ctx.decodeAudioData(arrayBuffer)
+    }
+
+    ;(async () => {
+      try {
+        const [finish, startWork, stopWork, pause] = await Promise.all([
+          loadBuffer(finishSoundSrc),
+          loadBuffer(startWorkSoundSrc),
+          loadBuffer(stopWorkSoundSrc),
+          loadBuffer(pauseSoundSrc),
+        ])
+
+        audioBuffersRef.current = {
+          finish,
+          startWork,
+          stopWork,
+          pause,
+        }
+      } catch {
+        // 로딩 실패는 무시
+      }
+    })()
+
+    return () => {
+      ctx.close().catch(() => {})
+    }
   }, [])
 
-  const playSound = (audio: HTMLAudioElement | null) => {
-    if (!audio) return
-    try {
-      audio.currentTime = 0
-      void audio.play()
-    } catch {
-      // 재생 실패는 무시
+  const playSound = (key: SoundKey) => {
+    const ctx = audioContextRef.current
+    if (!ctx) return
+
+    const buffer = audioBuffersRef.current[key]
+    if (!buffer) return
+
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
     }
+
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(ctx.destination)
+    source.start(0) // ASAP
   }
 
   const clearTimer = () => {
@@ -75,7 +123,7 @@ export default function IntervalTimer() {
     setTimeLeftMs(initialTime * 1000)
     setIsRunning(true)
     setIsPaused(false)
-    playSound(startWorkSoundRef.current)
+    playSound('startWork')
   }
 
   const togglePause = () => {
@@ -83,12 +131,10 @@ export default function IntervalTimer() {
     if (!isPaused) {
       setIsPaused(true)
       clearTimer()
-      // 일시정지 시 사운드
-      playSound(pauseSoundRef.current)
+      playSound('pause')
     } else {
       setIsPaused(false)
-      // 재개 시에는 사운드 없음(원하면 여기 추가)
-      playSound(startWorkSoundRef.current)
+      playSound('startWork')
     }
   }
 
@@ -107,8 +153,7 @@ export default function IntervalTimer() {
             // 작업 단계 끝 → 텀으로
             if (intervalRest > 0 && currentLoop < totalLoops) {
               setIsInterval(true)
-              // 텀 시작 사운드
-              playSound(stopWorkSoundRef.current)
+              playSound('stopWork')
               return intervalRest * 1000
             }
           }
@@ -116,14 +161,14 @@ export default function IntervalTimer() {
           // 텀 끝 or 텀이 없는 경우 → 다음 루프 or 종료
           if (currentLoop < totalLoops) {
             if (isInterval) {
-              playSound(startWorkSoundRef.current)
+              playSound('startWork')
             }
             setCurrentLoop((c) => c + 1)
             setIsInterval(false)
             return initialTime * 1000
           } else {
             // 모든 루프 완료 → finish 사운드
-            playSound(finishSoundRef.current)
+            playSound('finish')
             stop()
             return 0
           }
