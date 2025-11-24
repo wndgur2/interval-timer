@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import NumberInput from './NumberInput'
 import './IntervalTimer.css'
 
+// 사운드 파일 import
+import finishSoundSrc from './assets/audio/finish.mp3'
+import startWorkSoundSrc from './assets/audio/start-work.mp3'
+import stopWorkSoundSrc from './assets/audio/stop-work.mp3'
+import pauseSoundSrc from './assets/audio/pause.mp3'
+
 export default function IntervalTimer() {
   const [totalLoops, setTotalLoops] = useState(4)
   const [initialTime, setInitialTime] = useState(10) // 작업 시간(초)
@@ -14,6 +20,30 @@ export default function IntervalTimer() {
   const [isPaused, setIsPaused] = useState(false)
 
   const timerRef = useRef<number | null>(null)
+
+  // 오디오 ref
+  const finishSoundRef = useRef<HTMLAudioElement | null>(null)
+  const stopWorkSoundRef = useRef<HTMLAudioElement | null>(null)
+  const startWorkSoundRef = useRef<HTMLAudioElement | null>(null)
+  const pauseSoundRef = useRef<HTMLAudioElement | null>(null)
+
+  // 오디오 인스턴스 생성
+  useEffect(() => {
+    finishSoundRef.current = new Audio(finishSoundSrc)
+    stopWorkSoundRef.current = new Audio(stopWorkSoundSrc)
+    startWorkSoundRef.current = new Audio(startWorkSoundSrc)
+    pauseSoundRef.current = new Audio(pauseSoundSrc)
+  }, [])
+
+  const playSound = (audio: HTMLAudioElement | null) => {
+    if (!audio) return
+    try {
+      audio.currentTime = 0
+      void audio.play()
+    } catch {
+      // 재생 실패는 무시
+    }
+  }
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -45,6 +75,7 @@ export default function IntervalTimer() {
     setTimeLeftMs(initialTime * 1000)
     setIsRunning(true)
     setIsPaused(false)
+    playSound(startWorkSoundRef.current)
   }
 
   const togglePause = () => {
@@ -52,8 +83,12 @@ export default function IntervalTimer() {
     if (!isPaused) {
       setIsPaused(true)
       clearTimer()
+      // 일시정지 시 사운드
+      playSound(pauseSoundRef.current)
     } else {
       setIsPaused(false)
+      // 재개 시에는 사운드 없음(원하면 여기 추가)
+      playSound(startWorkSoundRef.current)
     }
   }
 
@@ -72,17 +107,23 @@ export default function IntervalTimer() {
             // 작업 단계 끝 → 텀으로
             if (intervalRest > 0 && currentLoop < totalLoops) {
               setIsInterval(true)
+              // 텀 시작 사운드
+              playSound(stopWorkSoundRef.current)
               return intervalRest * 1000
             }
           }
 
           // 텀 끝 or 텀이 없는 경우 → 다음 루프 or 종료
           if (currentLoop < totalLoops) {
-            console.log('next loop')
+            if (isInterval) {
+              playSound(startWorkSoundRef.current)
+            }
             setCurrentLoop((c) => c + 1)
             setIsInterval(false)
             return initialTime * 1000
           } else {
+            // 모든 루프 완료 → finish 사운드
+            playSound(finishSoundRef.current)
             stop()
             return 0
           }
