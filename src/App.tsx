@@ -128,9 +128,9 @@ export default function IntervalTimer() {
         </div>
 
         <div className="interval-timer__time">
-          <span className="interval-timer__time-label">남은 시간</span>
           <span className="interval-timer__time-value">
-            {formatTime(timeLeftMs)} <span className="interval-timer__time-unit">초</span>
+            {formatTime(isRunning ? timeLeftMs : (initialTime || 0) * 1000)}
+            <span className="interval-timer__time-unit">초</span>
           </span>
         </div>
 
